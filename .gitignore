@@ -30,7 +30,6 @@ Thumbs.db
 
 # Docker
 .dockerignore
-Dockerfile
 
 # Tests
 coverage/
