@@ -1,15 +1,17 @@
-import { ExchangeService, ExchangeVersion, WebCredentials, DateTime, CalendarView, Uri, WellKnownFolderName, AttendeeCollection, AppointmentSchema, PropertySet, ItemId } from 'ews-javascript-api';
+import { ExchangeService, ExchangeVersion, WebCredentials, DateTime, CalendarView, Uri, WellKnownFolderName, AttendeeCollection, AppointmentSchema, PropertySet, ItemId, Mailbox, FolderId } from 'ews-javascript-api';
 import { CalendarEvent, Person } from '../types/calendar';
 import { ExchangeConfig } from '../types/config';
 
 export class ExchangeCalendarService {
   private service: ExchangeService;
+  private emailDomain: string;
 
   constructor(config: ExchangeConfig) {
     const { url, username, password } = config;
     this.service = new ExchangeService(ExchangeVersion.Exchange2013);
     this.service.Url = new Uri(url);
     this.service.Credentials = new WebCredentials(username, password);
+    this.emailDomain = config.emailDomain;
   }
 
   private getAttendees(attendees: AttendeeCollection): Person[] {
@@ -26,7 +28,10 @@ export class ExchangeCalendarService {
       AppointmentSchema.End,
       AppointmentSchema.RequiredAttendees,
       AppointmentSchema.OptionalAttendees,
-      AppointmentSchema.Body
+      AppointmentSchema.Body,
+      AppointmentSchema.StartTimeZone,
+      AppointmentSchema.Organizer,
+      AppointmentSchema.Categories
     );
 
     const itemIdObj = new ItemId(itemId);
@@ -42,11 +47,17 @@ export class ExchangeCalendarService {
         ...this.getAttendees(appointment.RequiredAttendees),
         ...this.getAttendees(appointment.OptionalAttendees)
       ],
-      description: ''
+      description: appointment.Body.Text || '',
+      timezone: appointment.StartTimeZone.Name,
+      organizer: {
+        email: appointment.Organizer.Address,
+        fullName: appointment.Organizer.Name
+      },
+      category: appointment.Categories?.items?.join(', ') || ''
     };
   }
 
-  async getEventsForDate(date: Date): Promise<CalendarEvent[]> {
+  async getEventsForDate(date: Date, username?: string): Promise<CalendarEvent[]> {
     try {
       // Create a calendar view for the entire day
       const startDate = new Date(date);
@@ -59,11 +70,24 @@ export class ExchangeCalendarService {
         DateTime.Parse(endDate.toISOString())
       );
 
-      // Get the calendar items
-      const calendarItems = await this.service.FindAppointments(
-        WellKnownFolderName.Calendar,
-        calendarView
-      );
+      let calendarItems;
+      if (username) {
+        // Create a mailbox object for the target user
+        const mailbox = new Mailbox(username + this.emailDomain);
+        // Create a folder ID for the calendar
+        const folderId = new FolderId(WellKnownFolderName.Calendar, mailbox);
+        // Get the calendar items from the specified user's calendar
+        calendarItems = await this.service.FindAppointments(
+          folderId,
+          calendarView
+        );
+      } else {
+        // Get the calendar items from the current user's calendar
+        calendarItems = await this.service.FindAppointments(
+          WellKnownFolderName.Calendar,
+          calendarView
+        );
+      }
 
       console.log('Calendar items loaded:', calendarItems.Items.length);
 

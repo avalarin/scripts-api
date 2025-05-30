@@ -14,6 +14,18 @@ const PORT = process.env.PORT || 3000;
 // Apply auth middleware to all routes
 app.use(authMiddleware(config.getAuthConfig()));
 
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path}`);
+  next();
+});
+
+// Add error logging middleware
+app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(`Request error:`, err);
+  res.status(500).json({ error: 'Internal server error' });
+});
+
 // Middleware for JSON parsing
 app.use(express.json());
 

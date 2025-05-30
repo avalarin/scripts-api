@@ -21,7 +21,8 @@ export class ConfigService {
       exchange: {
         url: process.env.EXCHANGE_URL || fileConfig.exchange.url,
         username: process.env.EXCHANGE_USERNAME || fileConfig.exchange.username,
-        password: process.env.EXCHANGE_PASSWORD || fileConfig.exchange.password
+        password: process.env.EXCHANGE_PASSWORD || fileConfig.exchange.password,
+        emailDomain: process.env.EXCHANGE_EMAIL_DOMAIN || fileConfig.exchange.emailDomain
       },
       auth: {
         bearerToken: process.env.AUTH_BEARER_TOKEN || fileConfig.auth.bearerToken

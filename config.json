@@ -2,7 +2,8 @@
   "exchange": {
     "url": "https://mail.example.com/EWS/Exchange.asmx",
     "username": "",
-    "password": ""
+    "password": "",
+    "emailDomain": "@example.com"
   },
   "auth": {
     "bearerToken": "test"

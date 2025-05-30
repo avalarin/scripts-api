@@ -2,6 +2,7 @@ export interface ExchangeConfig {
   url: string;
   username: string;
   password: string;
+  emailDomain: string;
 }
 
 export interface AuthConfig {
