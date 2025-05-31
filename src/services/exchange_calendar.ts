@@ -47,12 +47,12 @@ export class ExchangeCalendarService {
         ...this.getAttendees(appointment.RequiredAttendees),
         ...this.getAttendees(appointment.OptionalAttendees)
       ],
-      description: appointment.Body.Text || '',
+      description: appointment.Body?.Text || '',
       timezone: appointment.StartTimeZone.Name,
-      organizer: {
+      organizer: appointment.Organizer && {
         email: appointment.Organizer.Address,
         fullName: appointment.Organizer.Name
-      },
+      } || {},
       category: appointment.Categories?.items?.join(', ') || ''
     };
   }
