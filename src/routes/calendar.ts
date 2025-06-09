@@ -16,9 +16,9 @@ export function calendarRouter(exchangeService: ExchangeCalendarService): Router
   const getCalendarEvents: RequestHandler<CalendarParams> = async (req, res) => {
     const { date, username } = req.params;
 
-    const timezone = req.headers['x-timezone'] as string || 'UTC';
+    const timezone = (req.headers['x-timezone'] as string) || 'UTC';
     const eventDate = new Date(date);
-    
+
     // Check if the date is valid
     if (isNaN(eventDate.getTime())) {
       res.status(400).json({ error: 'Invalid date format. Please use YYYY-MM-DD.' });
@@ -27,25 +27,22 @@ export function calendarRouter(exchangeService: ExchangeCalendarService): Router
 
     try {
       // Only pass username if it's not the default route
-      const events = await exchangeService.getEventsForDate(
-        eventDate,
-        username
-      );
-      
+      const events = await exchangeService.getEventsForDate(eventDate, username);
+
       // Convert event times to specified timezone in ISO format
-      const eventsWithTimezone = events.map(event => {
+      const eventsWithTimezone = events.map((event) => {
         const startDate = new Date(event.startTime);
         const endDate = new Date(event.endTime);
-        
+
         return {
           ...event,
           startTime: startDate.toLocaleString('sv', { timeZone: timezone }),
-          endTime: endDate.toLocaleString('sv', { timeZone: timezone })
+          endTime: endDate.toLocaleString('sv', { timeZone: timezone }),
         };
       });
 
       res.json({
-        items: eventsWithTimezone
+        items: eventsWithTimezone,
       });
     } catch (error) {
       console.error('Error fetching calendar events:', error);
@@ -60,4 +57,3 @@ export function calendarRouter(exchangeService: ExchangeCalendarService): Router
 
   return router;
 }
-

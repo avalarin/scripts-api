@@ -1,4 +1,18 @@
-import { ExchangeService, ExchangeVersion, WebCredentials, DateTime, CalendarView, Uri, WellKnownFolderName, AttendeeCollection, AppointmentSchema, PropertySet, ItemId, Mailbox, FolderId } from 'ews-javascript-api';
+import {
+  ExchangeService,
+  ExchangeVersion,
+  WebCredentials,
+  DateTime,
+  CalendarView,
+  Uri,
+  WellKnownFolderName,
+  AttendeeCollection,
+  AppointmentSchema,
+  PropertySet,
+  ItemId,
+  Mailbox,
+  FolderId,
+} from 'ews-javascript-api';
 import { CalendarEvent, Person } from '../types/calendar';
 import { ExchangeConfig } from '../types/config';
 
@@ -17,7 +31,7 @@ export class ExchangeCalendarService {
   private getAttendees(attendees: AttendeeCollection): Person[] {
     return Array.from(attendees.GetEnumerator()).map((attendee) => ({
       email: attendee.Address,
-      fullName: attendee.Name
+      fullName: attendee.Name,
     }));
   }
 
@@ -45,15 +59,17 @@ export class ExchangeCalendarService {
       endTime: appointment.End.ToISOString(),
       participants: [
         ...this.getAttendees(appointment.RequiredAttendees),
-        ...this.getAttendees(appointment.OptionalAttendees)
+        ...this.getAttendees(appointment.OptionalAttendees),
       ],
       description: appointment.Body?.Text || '',
       timezone: appointment.StartTimeZone.Name,
-      organizer: appointment.Organizer && {
-        email: appointment.Organizer.Address,
-        fullName: appointment.Organizer.Name
-      } || {},
-      category: appointment.Categories?.items?.join(', ') || ''
+      organizer:
+        (appointment.Organizer && {
+          email: appointment.Organizer.Address,
+          fullName: appointment.Organizer.Name,
+        }) ||
+        {},
+      category: appointment.Categories?.items?.join(', ') || '',
     };
   }
 
@@ -77,10 +93,7 @@ export class ExchangeCalendarService {
         // Create a folder ID for the calendar
         const folderId = new FolderId(WellKnownFolderName.Calendar, mailbox);
         // Get the calendar items from the specified user's calendar
-        calendarItems = await this.service.FindAppointments(
-          folderId,
-          calendarView
-        );
+        calendarItems = await this.service.FindAppointments(folderId, calendarView);
       } else {
         // Get the calendar items from the current user's calendar
         calendarItems = await this.service.FindAppointments(
@@ -93,7 +106,7 @@ export class ExchangeCalendarService {
 
       // Load full details for each item
       const events = await Promise.all(
-        calendarItems.Items.map(item => this.fetchCalendarItem(item.Id.UniqueId))
+        calendarItems.Items.map((item) => this.fetchCalendarItem(item.Id.UniqueId))
       );
 
       return events;
@@ -102,4 +115,4 @@ export class ExchangeCalendarService {
       throw error;
     }
   }
-} 
+}

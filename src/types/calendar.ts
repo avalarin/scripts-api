@@ -8,7 +8,7 @@ export interface CalendarEvent {
   timezone: string;
   organizer: Person;
   category: string;
-} 
+}
 
 export interface Person {
   email: string;

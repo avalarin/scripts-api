@@ -3,6 +3,7 @@ import { Router } from 'express';
 import { ConfigService } from './services/config';
 import { ExchangeCalendarService } from './services/exchange_calendar';
 import { calendarRouter } from './routes/calendar';
+import { mcpRouter } from './routes/mcp';
 import { authMiddleware } from './middleware/auth';
 
 const config = ConfigService.loadConfig();
@@ -21,7 +22,7 @@ app.use((req, res, next) => {
 });
 
 // Add error logging middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: Error, req: express.Request, res: express.Response) => {
   console.error(`Request error:`, err);
   res.status(500).json({ error: 'Internal server error' });
 });
@@ -46,6 +47,9 @@ apiRouter.get('/', (req, res) => {
 const exchangeService = new ExchangeCalendarService(config.getExchangeConfig());
 apiRouter.use('/calendar', calendarRouter(exchangeService));
 
+// MCP route
+apiRouter.use('/mcp', mcpRouter(exchangeService));
+
 // Mount the API router
 app.use('/api', apiRouter);
 
@@ -59,5 +63,5 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`Health check available at: http://localhost:${PORT}/api/health`);
   console.log(`Calendar API available at: http://localhost:${PORT}/api/calendar/:date`);
+  console.log(`MCP API available at: http://localhost:${PORT}/api/mcp`);
 });
-
