@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 });
 
 // Add error logging middleware
-app.use((err: Error, req: express.Request, res: express.Response) => {
+app.use((err: Error, req: express.Request, res: express.Response, _: express.NextFunction) => {
   console.error(`Request error:`, err);
   res.status(500).json({ error: 'Internal server error' });
 });
@@ -38,11 +38,6 @@ apiRouter.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// Root endpoint
-apiRouter.get('/', (req, res) => {
-  res.json({ message: 'Welcome to the TypeScript REST API' });
-});
-
 // Calendar routes
 const exchangeService = new ExchangeCalendarService(config.getExchangeConfig());
 apiRouter.use('/calendar', calendarRouter(exchangeService));
@@ -52,11 +47,6 @@ apiRouter.use('/mcp', mcpRouter(exchangeService));
 
 // Mount the API router
 app.use('/api', apiRouter);
-
-// Default route
-app.get('/', (req, res) => {
-  res.send('Hello from Express + TypeScript!');
-});
 
 // Start the server
 app.listen(PORT, () => {
